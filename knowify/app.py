@@ -86,6 +86,14 @@ def handle_join(data):
         'running': rooms[room]['question_timer_running']
     }, room=request.sid)
 
+    # 👇 NEW: Emit current round details on join
+    emit('round_details_update', {
+        'roundName': rooms[room].get('current_round', ''),
+        'qtype': rooms[room].get('question_type', ''),
+        'numQuestions': rooms[room].get('num_questions', ''),
+        'marking': rooms[room].get('marking_scheme', '')
+    }, room=request.sid)
+
 @socketio.on('buzz')
 def handle_buzz(data):
     room = data['room']
@@ -222,6 +230,30 @@ def reset_question(data):
         'seconds': 0,
         'running': False
     }, room=room)
+
+@socketio.on('set_scores')
+def set_scores(data):
+    room = data['room']
+    scores = data['scores']
+    if room in rooms:
+        rooms[room]['scores'] = scores
+        emit('score_update', scores, room=room)
+
+@socketio.on('save_round_details')
+def save_round_details(data):
+    room = data['room']
+    rooms[room]['current_round'] = data['roundName']
+    rooms[room]['num_questions'] = data['numQuestions']
+    rooms[room]['marking_scheme'] = data['marking']
+    rooms[room]['question_type'] = data['qtype']  # Sync question type
+
+    emit('round_details_update', {
+        'roundName': data['roundName'],
+        'qtype': data['qtype'],
+        'numQuestions': data['numQuestions'],
+        'marking': data['marking']
+    }, room=room)
+
 
 def get_room_state(room):
     return {
