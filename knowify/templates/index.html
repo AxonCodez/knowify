@@ -1,41 +1,148 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Knowify - Join/Create Room</title>
+  <meta charset="UTF-8" />
+  <title>Knowify | Join or Host Room</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/static/styles.css" />
+  <!-- Replace your inline <style> section with this -->
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #e4f2fc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .card {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 420px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      color: #245ea8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 0.4rem;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.6rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    button {
+      background-color: #245ea8;
+      color: white;
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      width: 100%;
+      cursor: pointer;
+      transition: background 0.2s ease-in-out;
+      margin-top: 1rem;
+    }
+
+    button:hover {
+      background-color: #1b4e8a;
+    }
+
+    .role-toggle {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.4rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .role-toggle label {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-weight: normal;
+    }
+
+    .note {
+      font-size: 0.85rem;
+      color: gray;
+      text-align: center;
+      margin-top: 0.8rem;
+    }
+  </style>
+
 </head>
 <body>
-  <h1>Welcome to Knowify</h1>
-  <form method="POST">
-    <input name="name" placeholder="Your Name" required />
-    <select name="role">
-      <option value="admin">Create Room (Admin)</option>
-      <option value="user">Join Room (User)</option>
-    </select>
-    <div id="roomInput">
-      <input name="room" placeholder="Room Code" />
+  <form method="POST" class="card">
+    <h1>🎓 Join Knowify</h1>
+
+    <div class="form-group">
+      <label for="name">Your Name:</label>
+      <input type="text" name="name" id="name" required />
     </div>
-    <div id="teamInput">
-      <input name="team" placeholder="Team Name (users only)" />
+
+    <div class="form-group">
+      <label>Your Role:</label>
+      <div class="role-toggle">
+        <label><input type="radio" name="role" value="admin" required onchange="toggleTeamInput()"> Admin</label>
+        <label><input type="radio" name="role" value="user" onchange="toggleTeamInput()"> User</label>
+      </div>
     </div>
-    <button type="submit">Enter</button>
+
+    <div class="form-group" id="roomField">
+      <label for="room">Room Code (if joining):</label>
+      <input type="text" name="room" id="room" />
+    </div>
+
+    <div class="form-group" id="teamField" style="display: none;">
+      <label for="team">Team Name:</label>
+      <input type="text" name="team" id="team" />
+    </div>
+
+    <button type="submit">🚀 Enter Room</button>
+
+    <p class="note" style="margin-top: 1rem;">
+      Admins will create a new room automatically.
+              No need for room code
+    </p>
   </form>
+
   <script>
-    const roleSelect = document.querySelector('[name="role"]');
-    const roomInput = document.getElementById('roomInput');
-    const teamInput = document.getElementById('teamInput');
-
-    roleSelect.addEventListener('change', () => {
-      if (roleSelect.value === 'admin') {
-        roomInput.style.display = 'none';
-        teamInput.style.display = 'none';
+    function toggleTeamInput() {
+      const role = document.querySelector('input[name="role"]:checked')?.value;
+      const teamField = document.getElementById('teamField');
+      const roomField = document.getElementById('roomField');
+      
+      if (role === 'admin') {
+        teamField.style.display = 'none';
+        roomField.querySelector('input').required = false;
       } else {
-        roomInput.style.display = 'block';
-        teamInput.style.display = 'block';
+        teamField.style.display = 'block';
+        roomField.querySelector('input').required = true;
       }
-    });
-
-    // Initial state
-    roleSelect.dispatchEvent(new Event('change'));
+    }
   </script>
 </body>
 </html>
