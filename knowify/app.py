@@ -3,7 +3,7 @@ from flask_socketio import SocketIO, emit, join_room
 import random
 import string
 import eventlet
-
+import os
 eventlet.monkey_patch()
 
 app = Flask(__name__)
@@ -236,4 +236,4 @@ def get_room_state(room):
     }
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=3000)
+    socketio.run(app, host='0.0.0.0', port=int(os.environ.get('PORT', 3000)))
