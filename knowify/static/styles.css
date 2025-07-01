@@ -1,8 +1,7 @@
 body {
-  font-family: 'Segoe UI', sans-serif;
-  background-color: #f4f8ff;
-  margin: 0;
-  padding: 30px;
+  font-family: sans-serif;
+  padding: 20px;
+  background: #f2f6ff;
 }
 
 .container {
@@ -10,65 +9,40 @@ body {
   margin: auto;
 }
 
-h1, h2, h3 {
-  text-align: center;
-  color: #222;
-}
-
 .card {
-  background: #ffffff;
+  padding: 15px;
+  margin: 10px 0;
+  background: white;
   border-radius: 10px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-}
-
-input, select {
-  padding: 8px;
-  margin-top: 5px;
-  margin-bottom: 10px;
-  width: 100%;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  box-shadow: 0 0 4px rgba(0,0,0,0.1);
 }
 
 button {
-  background-color: #2196f3;
-  color: white;
+  margin: 5px;
+  padding: 8px 14px;
   border: none;
-  padding: 10px 16px;
+  background: #007bff;
+  color: white;
   border-radius: 6px;
   cursor: pointer;
-  margin-right: 5px;
-  margin-top: 5px;
 }
 
 button:hover {
-  background-color: #1976d2;
+  background: #0056b3;
 }
 
-.scoreboard-list {
-  list-style: none;
-  padding-left: 0;
-}
-
-.scoreboard-list li {
-  padding: 8px;
-  background: #f0f8ff;
-  margin-bottom: 6px;
-  border-left: 5px solid #2196f3;
-  font-size: 16px;
-}
-
-#notification {
-  background: #ffeb3b;
-  padding: 10px;
-  margin-top: 10px;
-  text-align: center;
-  border-radius: 6px;
-  font-weight: bold;
+input, select {
+  margin: 5px;
+  padding: 6px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
 }
 
 .hidden {
   display: none;
+}
+
+.scoreboard-list {
+  list-style: none;
+  padding: 0;
 }

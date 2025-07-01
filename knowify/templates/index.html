@@ -1,31 +1,41 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Knowify Login</title>
-  <link rel="stylesheet" href="/static/styles.css">
+  <title>Knowify - Join/Create Room</title>
 </head>
 <body>
-  <div class="container">
-    <h1>Welcome to Knowify</h1>
-
-    <div class="card">
-      <h2>Create a New Room (Admin)</h2>
-      <form action="/create" method="POST">
-        <input name="room" placeholder="Enter Room Code" required />
-        <input name="name" placeholder="Your Name (Admin)" required />
-        <button type="submit">Create Room</button>
-      </form>
+  <h1>Welcome to Knowify</h1>
+  <form method="POST">
+    <input name="name" placeholder="Your Name" required />
+    <select name="role">
+      <option value="admin">Create Room (Admin)</option>
+      <option value="user">Join Room (User)</option>
+    </select>
+    <div id="roomInput">
+      <input name="room" placeholder="Room Code" />
     </div>
-
-    <div class="card">
-      <h2>Join Existing Room (User)</h2>
-      <form action="/join" method="POST">
-        <input name="room" placeholder="Room Code" required />
-        <input name="team" placeholder="Your Team Name" required />
-        <input name="name" placeholder="Your Name" required />
-        <button type="submit">Join Room</button>
-      </form>
+    <div id="teamInput">
+      <input name="team" placeholder="Team Name (users only)" />
     </div>
-  </div>
+    <button type="submit">Enter</button>
+  </form>
+  <script>
+    const roleSelect = document.querySelector('[name="role"]');
+    const roomInput = document.getElementById('roomInput');
+    const teamInput = document.getElementById('teamInput');
+
+    roleSelect.addEventListener('change', () => {
+      if (roleSelect.value === 'admin') {
+        roomInput.style.display = 'none';
+        teamInput.style.display = 'none';
+      } else {
+        roomInput.style.display = 'block';
+        teamInput.style.display = 'block';
+      }
+    });
+
+    // Initial state
+    roleSelect.dispatchEvent(new Event('change'));
+  </script>
 </body>
 </html>
