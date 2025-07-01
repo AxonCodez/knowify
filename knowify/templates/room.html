@@ -98,6 +98,9 @@
 
   <!-- FLOATING TIMER -->
   <div id="floatingTimerBox">
+    <div id="timerProgressBarContainer">
+      <div id="timerProgressBar"></div>
+    </div>
     🕑 <span id="questionTimer">0</span> sec |
     🎯 Active: <span id="activeDisplay">-</span>
   </div>
@@ -235,24 +238,44 @@
       clearInterval(questionCountdown);
       document.getElementById('questionTimer').textContent = data.seconds;
 
+      const progressBar = document.getElementById('timerProgressBar');
+
       if (data.running) {
         let time = data.seconds;
+        let total = data.seconds;
+
+        progressBar.style.transition = 'none';
+        progressBar.style.width = '100%';
+
+        // Ensure transition kicks in AFTER setting full width
+        setTimeout(() => {
+          progressBar.style.transition = `width ${time}s linear`;
+          progressBar.style.width = '0%';
+        }, 50);
+
         questionCountdown = setInterval(() => {
           if (time <= 0) {
             clearInterval(questionCountdown);
-          } else {
+          } 
+           else {
             time--;
-
-            // Play countdown beep at last 5 seconds
-            if (time == 6) {
-              const beep = document.getElementById('countdownBeep');
-              beep.currentTime = 0;
-              beep.play();
-            }
-
             document.getElementById('questionTimer').textContent = time;
           }
+
+          if (time === 5) {
+            const beep = document.getElementById('countdownBeep');
+            try {
+              beep.pause();
+              beep.currentTime = 0;
+              beep.play();
+            } catch (err) {
+              console.warn("Countdown audio failed:", err);
+            }
+          }
         }, 1000);
+      } else {
+        progressBar.style.transition = 'none';
+        progressBar.style.width = '0%';
       }
     });
 
