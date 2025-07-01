@@ -9,10 +9,13 @@
 </head>
 <body>
   <audio id="buzzerSound" src="/static/buzzer.mp3" preload="auto"></audio>
+  <audio id="countdownBeep" src="/static/countdown.mp3" preload="auto"></audio>
+
 
   <div class="container">
     <h1>Room: {{ room_id }}</h1>
     <h3>Welcome, {{ name }} ({{ role.upper() }})</h3>
+    <button onclick="leaveRoom()" class="btn-sm" style="float: right; background: #ff4d4d; color: white; margin-bottom: 1rem;">🚪 Leave Room</button>
 
     <!-- USER: TEAMS JOINED -->
     <div class="card" style="background: #f5faff;">
@@ -239,11 +242,20 @@
             clearInterval(questionCountdown);
           } else {
             time--;
+
+            // Play countdown beep at last 5 seconds
+            if (time == 6) {
+              const beep = document.getElementById('countdownBeep');
+              beep.currentTime = 0;
+              beep.play();
+            }
+
             document.getElementById('questionTimer').textContent = time;
           }
         }, 1000);
       }
     });
+
 
     socket.on('room_state', state => {
       document.getElementById('activeDisplay').textContent = state.active_team || '-';
@@ -270,6 +282,12 @@
     function updateDropdown(id, items) {
       const select = document.getElementById(id);
       select.innerHTML = items.map(t => `<option value="${t}">${t}</option>`).join('');
+    }
+
+    function leaveRoom() {
+      if (confirm("Are you sure you want to leave the room?")) {
+        window.location.href = "/";
+      }
     }
   </script>
 </body>
