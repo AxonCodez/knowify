@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Knowify Room - {{ room_id }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Room: {{ room_id }}</h1>
+    <h3>Welcome, {{ name }} ({{ role.upper() }})</h3>
+
+    <div class="card" style="background: #eaf4ff;">
+      <h3>🌀 Current Round: <span id="roundName">-</span></h3>
+      <h3>📘 Question Type: <span id="qTypeDisplay">-</span></h3>
+      <h3>⏳ Timer: <span id="timer">0</span> seconds</h3>
+    </div>
+
+    <!-- Only visible to admin -->
+    <div class="card" id="adminControls" style="display: none;">
+      <h2>Quizmaster Controls</h2>
+      <button onclick="startQuiz()">▶️ Start Quiz</button>
+      <button onclick="stopQuiz()">⏹️ Stop Quiz</button>
+      <button onclick="addRound()">➕ Add Round</button>
+      <button onclick="setRoundName()">📝 Set Round Name</button>
+      <button onclick="startTimer()">⏳ Start Timer</button>
+
+      <div>
+        <label>Active Team:</label>
+        <input id="activeTeam" placeholder="Team name" />
+        <button onclick="setActive()">🎯 Set Active</button>
+      </div>
+
+      <div>
+        <label>Question Type:</label>
+        <select id="qType">
+          <option value="infinite">Infinite Pounce</option>
+          <option value="buzzer">Buzzer Round</option>
+          <option value="direct">Direct Question</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Points:</label>
+        <input id="points" type="number" placeholder="Enter points" />
+        <button onclick="award()">🏆 Award Points</button>
+      </div>
+    </div>
+
+    <!-- Buzzers -->
+    <div class="card">
+      <h2>Buzzer</h2>
+      <button onclick="buzz()">🔔 BUZZ</button>
+      <button onclick="reset()">🔄 Reset Buzzer</button>
+    </div>
+
+    <!-- Scoreboard -->
+    <div class="card">
+      <h2>Scoreboard</h2>
+      <ul id="scoreboard" class="scoreboard-list"></ul>
+    </div>
+
+    <div id="notification" class="hidden"></div>
+  </div>
+
+  <!-- User and Room Info Script -->
+  <script>
+    const role = "{{ role }}"
+    const team = "{{ team }}"
+    const room = "{{ room_id }}"
+    const name = "{{ name }}"
+  </script>
+
+  <!-- Client Socket Logic -->
+  <script>
+    const socket = io()
+
+    if (role === "admin") {
+      document.getElementById('adminControls').style.display = 'block'
+    } else {
+      socket.emit('join', { room, team })
+    }
+
+    function buzz() {
+      if (!team) return alert("Only team members can buzz.")
+      socket.emit('buzz', { room, team })
+    }
+
+    function reset() {
+      socket.emit('reset_buzzer', { room })
+    }
+
+    function award() {
+      const teamName = document.getElementById('activeTeam').value
+      const points = document.getElementById('points').value
+      socket.emit('award_points', { room, team: teamName, points })
+    }
+
+    function startQuiz() {
+      socket.emit('start_quiz', { room })
+    }
+
+    function stopQuiz() {
+      socket.emit('stop_quiz', { room })
+    }
+
+    function addRound() {
+      socket.emit('add_round', { room })
+    }
+
+    function setRoundName() {
+      const round = prompt("Enter round name:")
+      if (round) socket.emit('set_round_name', { room, round_name: round })
+    }
+
+    function startTimer() {
+      const seconds = prompt("Enter seconds for timer:")
+      if (seconds && !isNaN(seconds)) {
+        socket.emit('start_timer', { room, seconds })
+      }
+    }
+
+    function setActive() {
+      const active = document.getElementById('activeTeam').value
+      socket.emit('set_active_team', { room, team: active })
+    }
+
+    document.getElementById('qType')?.addEventListener('change', function () {
+      const qtype = this.value
+      socket.emit('set_question_type', { room, qtype })
+    })
+
+    socket.on('score_update', scores => {
+      const ul = document.getElementById('scoreboard')
+      ul.innerHTML = ''
+      for (const [teamName, score] of Object.entries(scores)) {
+        ul.innerHTML += `<li><strong>${teamName}</strong>: ${score}</li>`
+      }
+    })
+
+    socket.on('buzzed', team => notify(`🔔 ${team} buzzed first!`))
+    socket.on('reset_buzzer', () => notify(`🔄 Buzzer reset`))
+    socket.on('timer_update', seconds => {
+      document.getElementById('timer').textContent = seconds
+    })
+
+    socket.on('room_state', state => {
+      document.getElementById('roundName').textContent = state.current_round || '-'
+      document.getElementById('qTypeDisplay').textContent = state.question_type || '-'
+      document.getElementById('timer').textContent = state.timer || 0
+      notify(`ℹ️ Quiz ${state.quiz_started ? "Started" : "Stopped"}`)
+    })
+
+    function notify(text) {
+      const n = document.getElementById('notification')
+      n.textContent = text
+      n.classList.remove('hidden')
+      setTimeout(() => n.classList.add('hidden'), 2500)
+    }
+  </script>
+</body>
+</html>

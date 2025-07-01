@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Knowify Login</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Welcome to Knowify</h1>
+
+    <div class="card">
+      <h2>Create a New Room (Admin)</h2>
+      <form action="/create" method="POST">
+        <input name="room" placeholder="Enter Room Code" required />
+        <input name="name" placeholder="Your Name (Admin)" required />
+        <button type="submit">Create Room</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Join Existing Room (User)</h2>
+      <form action="/join" method="POST">
+        <input name="room" placeholder="Room Code" required />
+        <input name="team" placeholder="Your Team Name" required />
+        <input name="name" placeholder="Your Name" required />
+        <button type="submit">Join Room</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
