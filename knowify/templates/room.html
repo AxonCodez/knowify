@@ -8,28 +8,25 @@
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </head>
 <body>
+  <audio id="buzzerSound" src="/static/buzzer.mp3" preload="auto"></audio>
   <div class="container">
     <h1>Room: {{ room_id }}</h1>
     <h3>Welcome, {{ name }} ({{ role.upper() }})</h3>
 
+    <!-- Display Panel -->
     <div class="card" style="background: #eaf4ff;">
       <h3>🌀 Current Round: <span id="roundName">-</span></h3>
       <h3>📘 Question Type: <span id="qTypeDisplay">-</span></h3>
       <h3>🎯 Active Team: <span id="activeDisplay">-</span></h3>
-      <h3>⏳ Timer: <span id="timer">0</span> sec</h3>
       <h3>🕑 Question Timer: <span id="questionTimer">0</span> sec</h3>
-      <h3>🔔 Buzzer Status: <span id="buzzerStatus">-</span></h3>
       <h3>👥 Joined Teams: <span id="teamList">None</span></h3>
     </div>
 
     <!-- Admin Controls -->
     <div class="card" id="adminControls" style="display: none;">
       <h2>🧠 Quizmaster Controls</h2>
-      <button onclick="startQuiz()">▶️ Start Quiz</button>
-      <button onclick="stopQuiz()">⏹️ Stop Quiz</button>
       <button onclick="addRound()">➕ Add Round</button>
       <button onclick="setRoundName()">📝 Set Round Name</button>
-      <button onclick="startTimer()">⏳ Start Quiz Timer</button>
 
       <hr />
 
@@ -41,7 +38,6 @@
       <hr />
 
       <h3>❓ Question Controls</h3>
-
       <label>Set Question Type:</label>
       <select id="qType">
         <option value="infinite">Infinite Pounce</option>
@@ -77,6 +73,7 @@
     <div class="card" id="buzzSection">
       <h2>Buzzer</h2>
       <button onclick="buzz()" id="buzzBtn">🔔 BUZZ</button>
+      <span id="buzzerStatus" style="margin-left: 1rem;">⛔</span>
     </div>
 
     <!-- Scoreboard -->
@@ -91,14 +88,13 @@
       <ul id="buzzOrderList" class="scoreboard-list"></ul>
     </div>
 
-    <div id="notification" class="hidden"></div>
-
     <script>
       const role = "{{ role }}";
       const team = "{{ team }}";
       const room = "{{ room_id }}";
       const name = "{{ name }}";
       const socket = io();
+      let questionCountdown = null;
 
       socket.emit('join', { room, team: role === "admin" ? null : team });
 
@@ -110,7 +106,13 @@
       function buzz() {
         if (!team) return alert("Only team members can buzz.");
         socket.emit('buzz', { room, team });
+
+        // Play buzzer sound for the user who buzzed
+        const sound = document.getElementById('buzzerSound');
+        sound.currentTime = 0;
+        sound.play();
       }
+
 
       function reset() {
         socket.emit('reset_buzzer', { room });
@@ -124,14 +126,6 @@
         }
       }
 
-      function startQuiz() {
-        socket.emit('start_quiz', { room });
-      }
-
-      function stopQuiz() {
-        socket.emit('stop_quiz', { room });
-      }
-
       function addRound() {
         socket.emit('add_round', { room });
       }
@@ -139,13 +133,6 @@
       function setRoundName() {
         const round = prompt("Enter round name:");
         if (round) socket.emit('set_round_name', { room, round_name: round });
-      }
-
-      function startTimer() {
-        const seconds = prompt("Enter seconds:");
-        if (seconds && !isNaN(seconds)) {
-          socket.emit('start_timer', { room, seconds });
-        }
       }
 
       function setActive() {
@@ -205,10 +192,16 @@
 
         const buzzBtn = document.getElementById('buzzBtn');
         if (buzzBtn) {
+          const justBuzzed = !buzzBtn.disabled && order.includes(team);
           buzzBtn.disabled = !enabled || order.includes(team);
+          if (justBuzzed) {
+            const sound = document.getElementById('buzzerSound');
+            sound.currentTime = 0;
+            sound.play();
+          }
         }
 
-        document.getElementById('buzzerStatus').textContent = enabled ? "Started" : "Stopped";
+        document.getElementById('buzzerStatus').textContent = enabled ? "✅ Started" : "⛔ Stopped";
 
         const buzzList = document.getElementById('buzzOrderList');
         buzzList.innerHTML = '';
@@ -217,21 +210,29 @@
         });
       });
 
-      socket.on('timer_update', seconds => {
-        document.getElementById('timer').textContent = seconds;
-      });
-
       socket.on('question_timer_update', data => {
+        clearInterval(questionCountdown);
         document.getElementById('questionTimer').textContent = data.seconds;
+
+        if (data.running) {
+          let time = data.seconds;
+          questionCountdown = setInterval(() => {
+            if (time <= 0) {
+              clearInterval(questionCountdown);
+            } else {
+              time--;
+              document.getElementById('questionTimer').textContent = time;
+            }
+          }, 1000);
+        }
       });
 
       socket.on('room_state', state => {
         document.getElementById('roundName').textContent = state.current_round || '-';
         document.getElementById('qTypeDisplay').textContent = state.question_type || '-';
         document.getElementById('activeDisplay').textContent = state.active_team || '-';
-        document.getElementById('timer').textContent = state.timer || 0;
         document.getElementById('questionTimer').textContent = state.question_timer || 0;
-        document.getElementById('buzzerStatus').textContent = state.buzzer_enabled ? "Started" : "Stopped";
+        document.getElementById('buzzerStatus').textContent = state.buzzer_enabled ? "✅ Started" : "⛔ Stopped";
       });
 
       function updateDropdown(id, items) {
